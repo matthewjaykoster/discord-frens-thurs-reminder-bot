@@ -1,111 +1,138 @@
 # Discord Frens Thursday Reminder Bot
 
-A small Discord bot that reads weekly plan data from a Google Sheet and posts a reminder in the Discord server for the person or group assigned to that plan.
+A small Node.js + TypeScript Discord bot that reads a weekly planning sheet from Google Sheets and posts a reminder for the assigned host or group.
 
-## What it does
+## What this bot does
 
-- Reads a Google Sheet with the columns `Date`, `Host`, `Activity`, and `Notes`
-- Normalizes rows into a common plan/reminder shape
-- Handles three `Host` patterns: a single name, multiple names, or `All`
-- Resolves human names like `Alice` to Discord user IDs
-- Sends a reminder message in the configured Discord channel
-- Runs on a configurable schedule so the reminder check happens at the right time
+- Reads the spreadsheet as the system of record for recurring plans
+- Supports `Date`, `Host`, `Activity`, and `Notes` columns
+- Handles single hosts, multiple hosts, and the special `All` case
+- Normalizes names to Discord user IDs via a configurable host map
+- Posts a reminder message in a target server channel
+- Checks the schedule on a configurable weekday/time
+- Logs operational warnings and errors to a dedicated Discord log channel
 
-## Recommended project structure
+## Documentation
+
+- [Configuration reference](./docs/configuration.md)
+- [Credential setup](./docs/credentials.md)
+- [Google Sheet contract](./docs/sheet-contract.md)
+- [Usage guide](./docs/usage.md)
+- [Deployment notes](./docs/deployment.md)
+- [Troubleshooting](./docs/troubleshooting.md)
+
+## Current project structure
 
 ```text
 .
 ├── .github/
 │   └── copilot-instructions.md
+├── coverage/
+├── dist/
 ├── docs/
 │   ├── configuration.md
 │   ├── credentials.md
 │   ├── deployment.md
-│   ├── usage.md
-│   └── troubleshooting.md
+│   ├── sheet-contract.md
+│   ├── troubleshooting.md
+│   └── usage.md
 ├── src/
 │   ├── bot/
+│   │   └── client.ts
 │   ├── commands/
 │   ├── config/
+│   │   ├── env.ts
+│   │   └── index.ts
+│   ├── index.ts
 │   ├── reminders/
+│   │   └── message.ts
 │   ├── scheduler/
-│   ├── sheet/
-│   └── index.ts
+│   │   └── weekly.ts
+│   └── sheet/
+│       ├── google.ts
+│       ├── parser.ts
+│       ├── types.ts
+│       └── index.ts
 ├── tests/
-│   └── fixtures/
+│   ├── bot-client.test.ts
+│   ├── config-env.test.ts
+│   ├── google-sheets.functional.test.ts
+│   ├── index.test.ts
+│   ├── reminder-message.test.ts
+│   ├── scheduler-weekly.test.ts
+│   └── sheet-parser.test.ts
 ├── .env.example
 ├── .gitignore
 ├── package.json
 ├── tsconfig.json
+├── vitest.config.ts
 ├── README.md
-└── ...
+└── package-lock.json
 ```
 
-## Core workflow
+## Quick start
 
-1. Load configuration from environment variables.
-2. Connect to the Google Sheet.
-3. Read rows from the configured worksheet.
-4. Parse the `Date` field (`mm-dd`) into a real Date using a rolling 6-month year rule.
-5. Match `Host` to one or more Discord user IDs, or to `@everyone` when the value is `All`.
-6. Determine the relevant upcoming reminder.
-7. Send a mention + message in the configured reminder channel.
-8. Log warnings and errors to a dedicated Discord log channel without crashing the bot.
+### 1. Install dependencies
 
-## Expected spreadsheet shape
+```bash
+npm install
+```
 
-| Date | Host | Activity | Notes |
-| --- | --- | --- | --- |
-| 11-02 | Alice | Movie night | Bring snacks |
-| 11-09 | Jen AND Hannah | Board games | Maybe at my place |
-| 11-16 | All | Community hangout | Open to everyone |
+### 2. Create a local environment file
 
-Notes:
+Copy the example file and fill in your values:
 
-- `Date` is stored as `mm-dd`
-- `Host` is one of three patterns: single name, multiple names, or `All`
-- `Activity` is the main plan description
-- `Notes` is optional and may be ignored for the first version
+```bash
+copy .env.example .env
+```
 
-## Configuration
+Then edit `.env` with your Discord and Google configuration. See [docs/configuration.md](./docs/configuration.md) and [docs/credentials.md](./docs/credentials.md) for the full list and setup steps.
 
-This bot should use environment variables for all secrets and operational settings. See `docs/configuration.md` for the full list.
+### 3. Run the app in development mode
 
-## Local development
+```bash
+npm run dev
+```
 
-Use a local `.env` file for development and a fixture-based or mocked sheet flow for tests. Avoid depending on production credentials for normal local runs.
+### 4. Run the tests
 
-## Deployment
+```bash
+npm test
+```
 
-See `docs/deployment.md` for deployment guidance and operational notes.
+For coverage:
 
-## Usage
+```bash
+npm run test:coverage
+```
 
-See `docs/usage.md` for how the bot checks reminders and how to run it locally.
+For the opt-in live Google Sheets check, if you have real credentials configured:
 
-## Troubleshooting
+```bash
+npm run test:functional
+```
 
-See `docs/troubleshooting.md` for common issues and debugging steps.
+### 5. Build for production
 
-## Date handling and rolling-year logic
+```bash
+npm run build
+npm start
+```
 
-The spreadsheet accepts date strings in either `mm-dd` or `mm/dd/yyyy` format. Month-day values are inferred using a rolling 6-month window, while full dates preserve the explicit year from the sheet.
+## Required environment variables
 
-The parser compares candidate years around the current date (`currentYear - 1`, `currentYear`, `currentYear + 1`) and picks the closest valid date within that window. This avoids the common edge case where dates in late July through December should not always be treated as current-year dates if the current date is in January, and vice versa.
+At minimum, the app expects values for:
 
-## Host handling
+- Discord bot token and channel IDs
+- Google Sheet ID, sheet name, service account email, and private key
+- Reminder schedule time/day settings
+- Host-to-Discord-ID mapping
 
-The `Host` column supports three patterns:
+See [docs/configuration.md](./docs/configuration.md) for the full config reference.
 
-- a single name such as `Alice`
-- a multi-name group such as `Jen AND Hannah` or `Jen, Hannah`
-- the special value `All`, which resolves to a Discord `@everyone` mention
+## Notes
 
-Names are normalized case-insensitively and matched against the `HOST_TO_DISCORD_ID` map in lowercase form.
-
-## Notes for future contributors
-
-- Keep spreadsheet parsing and Discord logic separate.
-- Prefer readable, explicit functions over over-abstracting.
-- Document non-obvious date logic and name-to-user resolution clearly.
-- Keep the first version simple and reliable.
+- Keep secrets in a local `.env` file and never commit them.
+- Maintain clear separation between spreadsheet parsing and Discord messaging.
+- Prefer readable, explicit logic, especially around year inference and host lookup.
+- Use the docs as the source of truth for setup and troubleshooting.
