@@ -16,5 +16,5 @@ async function main(): Promise<void> {
 }
 
 main().catch((error) => {
-    console.error('Bot failed to start:', error);
+    console.error('Bot failed to start (top-level error):', error);
 });

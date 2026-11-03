@@ -14,7 +14,6 @@ describe('parsePlanRow', () => {
         const result = parsePlanRow(row, currentDate);
 
         expect(result).not.toBeNull();
-        expect(result?.ownerName).toBe('Alice');
         expect(result?.ownerNames).toEqual(['Alice']);
         expect(result?.mentionTarget).toBe('single');
         expect(result?.planTitle).toBe('Movie night');
@@ -65,7 +64,6 @@ describe('parsePlanRow', () => {
 
         expect(result?.mentionTarget).toBe('multiple');
         expect(result?.ownerNames).toEqual(['Jen', 'Hannah']);
-        expect(result?.ownerName).toBe('Jen');
     });
 
     it('handles the special All host value', () => {
@@ -79,7 +77,6 @@ describe('parsePlanRow', () => {
 
         expect(result?.mentionTarget).toBe('all');
         expect(result?.ownerNames).toEqual(['@everyone']);
-        expect(result?.ownerName).toBe('@everyone');
     });
 
     it('skips malformed values', () => {

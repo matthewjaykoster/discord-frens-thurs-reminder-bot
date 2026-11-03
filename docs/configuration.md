@@ -17,10 +17,6 @@ GOOGLE_SHEET_NAME="Sheet1"
 GOOGLE_SERVICE_ACCOUNT_EMAIL="service-account-email"
 GOOGLE_PRIVATE_KEY="-----BEGIN PRIVATE KEY-----\n...\n-----END PRIVATE KEY-----\n"
 
-REMINDER_DAY_OF_WEEK="Thursday"
-REMINDER_RUN_HOUR="9"
-REMINDER_RUN_MINUTE="0"
-
 HOST_TO_DISCORD_ID='{"alice":"123456789012345678","jen":"234567890123456789","hannah":"345678901234567890"}'
 ```
 
@@ -48,9 +44,7 @@ The parser normalizes names by trimming whitespace and lowercasing, and the envi
 
 - `DISCORD_REMINDER_CHANNEL_ID` is the channel where plan reminders are posted.
 - `DISCORD_LOG_CHANNEL_ID` is the dedicated log channel for warnings, errors, and operational issues.
-- `REMINDER_DAY_OF_WEEK` controls which day of the week the weekly reminder check should run on.
-- `REMINDER_RUN_HOUR` and `REMINDER_RUN_MINUTE` control the local reminder time.
-- The bot assumes US Eastern time for all reminder scheduling and daily comparisons.
+- The bot assumes US Eastern time for date comparisons used in reminder selection.
 - `HOST_TO_DISCORD_ID` can be replaced by a different lookup strategy later if needed, but it is a simple way to map human names to Discord IDs.
 
 ## Local development

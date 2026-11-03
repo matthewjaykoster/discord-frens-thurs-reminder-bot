@@ -5,5 +5,5 @@ export function buildReminderMessage(ownerMention: string, planTitle: string, du
         timeZone: 'America/New_York',
     });
 
-    return `${ownerMention}, this is your reminder for the upcoming plan: ${planTitle}.\nDate: ${dateLabel}`;
+    return `${ownerMention}, this is your reminder for your plan this week: ${planTitle}.\nDate: ${dateLabel}`;
 }

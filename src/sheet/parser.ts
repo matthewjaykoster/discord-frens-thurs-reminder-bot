@@ -136,7 +136,6 @@ export function parsePlanRow(row: RawPlanRow, currentDate: Date = new Date()): P
     const dueDate = new Date(year ?? computeAssumedYear(month, day, currentDate), month - 1, day);
 
     return {
-        ownerName: ownerNames[0],
         ownerNames,
         mentionTarget,
         planTitle: activity,

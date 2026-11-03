@@ -26,7 +26,6 @@ This repo is a small Discord reminder bot for a shared community server. The cor
 ## Project-specific conventions
 - This bot is meant for recurring community coordination, so schedule logic should be timezone-aware and easy to reason about.
 - A weekly “digest” pattern is the default: read the sheet once per week, compare rows to the current date, and post a reminder for the relevant plan owner.
-- The reminder checking time should be configurable, not hardcoded; prefer a cron-like config value or env var such as `REMINDER_DAY_OF_WEEK`, `REMINDER_RUN_HOUR`, and `REMINDER_RUN_MINUTE`.
 - Do not hardcode the spreadsheet ID, sheet name, server ID, channel IDs, Discord user IDs, or logger channel IDs in source files; keep them in environment variables or config.
 - Prefer thin command handlers and reusable functions. If a slash command or startup callback triggers a reminder check, it should delegate to a scheduler/helper rather than doing spreadsheet parsing inline.
 - Use a dedicated Discord log channel for warnings and errors. The bot should avoid crashes, but it should still report operational issues there for debugging.

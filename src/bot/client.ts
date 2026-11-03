@@ -33,13 +33,18 @@ export async function sendReminderMessage(client: Client, config: Config, conten
 }
 
 export async function sendLogMessage(client: Client, config: Config, content: string): Promise<void> {
-    const channel = await client.channels.fetch(config.logChannelId);
+    try {
+        const channel = await client.channels.fetch(config.logChannelId);
 
-    if (!channel || !('send' in channel)) {
-        console.error('Failed to send log message: log channel missing or not sendable');
-        return;
+        if (!channel || !('send' in channel)) {
+            console.error('Failed to send log message: log channel missing or not sendable');
+            return;
+        }
+
+        const textChannel = channel as TextChannel;
+        await textChannel.send(content);
+    } catch (error) {
+        const message = error instanceof Error ? error.message : String(error);
+        console.error(`Failed to send log message: ${message}`);
     }
-
-    const textChannel = channel as TextChannel;
-    await textChannel.send(content);
 }

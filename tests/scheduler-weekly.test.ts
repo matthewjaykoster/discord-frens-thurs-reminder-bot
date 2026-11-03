@@ -23,9 +23,6 @@ describe('runReminderCheck', () => {
         googleSheetName: 'Sheet1',
         googleServiceAccountEmail: 'service@example.com',
         googlePrivateKey: 'key',
-        reminderDayOfWeek: 'Thursday',
-        reminderHour: 9,
-        reminderMinute: 0,
         hostToDiscordId: { alice: '123', jen: '456', hannah: '789' },
     };
 

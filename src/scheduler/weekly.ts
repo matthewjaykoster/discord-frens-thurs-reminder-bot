@@ -5,7 +5,11 @@ import { fetchSheetRows } from '../sheet/googleSheets.js';
 import { sendLogMessage, sendReminderMessage } from '../bot/client.js';
 import { buildReminderMessage } from '../reminders/message.js';
 
-function resolveOwnerMention(plan: { ownerName: string; ownerNames: string[]; mentionTarget: 'all' | 'single' | 'multiple'; }, config: Config): string {
+function resolveOwnerMention(plan: { ownerNames: string[]; mentionTarget: 'all' | 'single' | 'multiple'; }, config: Config): string {
+    if (plan.ownerNames.length === 0) {
+        return 'Everyone (No host assigned)';
+    }
+
     if (plan.mentionTarget === 'all') {
         return '@everyone';
     }
@@ -20,10 +24,15 @@ function resolveOwnerMention(plan: { ownerName: string; ownerNames: string[]; me
             .join(' ');
     }
 
-    const normalizedHost = getNormalizedHostKey(plan.ownerName);
-    const resolvedId = config.hostToDiscordId[normalizedHost] ?? config.hostToDiscordId[plan.ownerName];
+    const singleOwnerName = plan.ownerNames[0];
+    if (!singleOwnerName) {
+        throw new Error('Could not resolve host discord ID for reminder: missing owner name');
+    }
+
+    const normalizedHost = getNormalizedHostKey(singleOwnerName);
+    const resolvedId = config.hostToDiscordId[normalizedHost] ?? config.hostToDiscordId[singleOwnerName];
     if (!resolvedId) {
-        throw new Error(`Could not resolve host for reminder: ${plan.ownerName}`);
+        throw new Error(`Could not resolve host discord ID for reminder: ${singleOwnerName}`);
     }
 
     return `<@${resolvedId}>`;
@@ -35,21 +44,15 @@ export async function runReminderCheck(client: Client, config: Config): Promise<
         const currentDate = new Date();
         const plans = rows
             .map((row) => parsePlanRow(row, currentDate))
-            .filter((plan): plan is NonNullable<typeof plan> => Boolean(plan));
+            .filter((plan): plan is NonNullable<typeof plan> => Boolean(plan))
+            .filter((plan) => plan.dueDate.getTime() >= currentDate.getTime());
 
         if (plans.length === 0) {
+            await sendLogMessage(client, config, 'No upcoming plans found in the Google Sheet for the current time window. Skipping reminder send.');
             return;
         }
 
-        const matchingPlan = plans.find((plan) => {
-            const normalizedPlanDay = plan.dueDate.toLocaleDateString('en-US', { weekday: 'long', timeZone: 'America/New_York' });
-            return normalizedPlanDay === config.reminderDayOfWeek && plan.dueDate.getTime() >= currentDate.getTime();
-        }) ?? plans.find((plan) => plan.dueDate.getTime() >= currentDate.getTime());
-
-        if (!matchingPlan) {
-            return;
-        }
-
+        const matchingPlan = plans.sort((a, b) => a.dueDate.getTime() - b.dueDate.getTime())[0];
         const ownerMention = resolveOwnerMention(matchingPlan, config);
         const message = buildReminderMessage(ownerMention, matchingPlan.planTitle, matchingPlan.dueDate);
         await sendReminderMessage(client, config, message);

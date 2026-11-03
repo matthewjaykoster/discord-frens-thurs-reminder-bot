@@ -14,9 +14,6 @@ vi.mock('../src/config/env.js', () => ({
         googleSheetName: 'Sheet1',
         googleServiceAccountEmail: 'service@example.com',
         googlePrivateKey: 'key',
-        reminderDayOfWeek: 'Thursday',
-        reminderHour: 9,
-        reminderMinute: 0,
         hostToDiscordId: {},
     })),
 }));

@@ -31,9 +31,6 @@ const config: Config = {
     googleSheetName: 'Sheet1',
     googleServiceAccountEmail: 'service@example.com',
     googlePrivateKey: 'private-key',
-    reminderDayOfWeek: 'Thursday',
-    reminderHour: 9,
-    reminderMinute: 0,
     hostToDiscordId: { alice: '123' },
 };
 

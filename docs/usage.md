@@ -13,16 +13,6 @@ This bot is designed to run as a small background service that reads a Google Sh
 7. Post a reminder in the configured Discord channel.
 8. Write operational warnings and errors to the bot log channel.
 
-## Schedule behavior
-
-The bot should run a weekly reminder check at a configured day and time. The config should include:
-
-- `REMINDER_DAY_OF_WEEK`
-- `REMINDER_RUN_HOUR`
-- `REMINDER_RUN_MINUTE`
-
-This project assumes US Eastern time for all reminder scheduling.
-
 ## Date handling
 
 The sheet stores dates as `mm-dd` and the bot infers the year using a rolling 6-month window. It compares the candidate years around the current date (`currentYear - 1`, `currentYear`, `currentYear + 1`) and selects the closest valid date in that window.
@@ -52,7 +42,7 @@ The app should:
 ## Example reminder
 
 ```text
-@Alice, this is your reminder for the upcoming plan: Movie night.
+@Alice, this is your reminder for your plan this week: Movie night.
 Date: 11-09
 Notes: Bring snacks.
 ```

@@ -8,7 +8,6 @@ export type RawPlanRow = {
 export type HostMentionTarget = 'all' | 'single' | 'multiple';
 
 export type PlanRecord = {
-    ownerName: string;
     ownerNames: string[];
     mentionTarget: HostMentionTarget;
     planTitle: string;
