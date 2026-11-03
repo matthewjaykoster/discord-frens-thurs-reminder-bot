@@ -7,9 +7,9 @@
         "dev": "tsx src/index.ts",
         "build": "tsc --project tsconfig.json",
         "start": "node dist/index.js",
-        "test": "vitest run",
-        "test:functional": "vitest run tests/google-sheets.functional.test.ts",
-        "test:coverage": "vitest run --coverage --coverage.reporter=text --coverage.reporter=html"
+        "test": "vitest run --exclude \"**/*.functional.test.ts\"",
+        "test:functional": "vitest run --config vitest.functional.config.ts",
+        "test:coverage": "vitest run --exclude \"**/*.functional.test.ts\" --coverage --coverage.reporter=text --coverage.reporter=html"
     },
     "dependencies": {
         "discord.js": "^14.17.3",
