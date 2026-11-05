@@ -106,7 +106,7 @@ export async function runReminderCheck(client: Client, config: Config): Promise<
         }
 
         const ownerMention = resolveOwnerMention(matchingPlan, config);
-        const message = buildReminderMessage(ownerMention, matchingPlan.planTitle, matchingPlan.dueDate);
+        const message = buildReminderMessage(ownerMention, matchingPlan.planTitle, matchingPlan.dueDate, matchingPlan.notes);
         await sendReminderMessage(client, config, message);
         saveReminderState(config.reminderStatePath, reminderStateKey);
     } catch (error) {

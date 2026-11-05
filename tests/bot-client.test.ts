@@ -51,7 +51,7 @@ describe('Discord client helpers', () => {
         } as any;
 
         await sendLogMessage(client, config, 'hello');
-        expect(send).toHaveBeenCalledWith('hello');
+        expect(send).toHaveBeenCalledWith('[LOG] hello');
     });
 
     it('handles missing log channel gracefully', async () => {
@@ -63,6 +63,6 @@ describe('Discord client helpers', () => {
         } as any;
 
         await sendLogMessage(client, config, 'hello');
-        expect(consoleSpy).toHaveBeenCalledWith('Failed to send log message: log channel missing or not sendable');
+        expect(consoleSpy).toHaveBeenCalledWith('[ERROR] Failed to send log message: log channel missing or not sendable');
     });
 });

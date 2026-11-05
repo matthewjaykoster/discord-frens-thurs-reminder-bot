@@ -42,8 +42,7 @@ The app should:
 ## Example reminder
 
 ```text
-@Alice, this is your reminder for your plan this week: Movie night.
-Date: 11-09
+@Alice, this is your reminder for your plan this week (11-09): Movie night.
 Notes: Bring snacks.
 ```
 
