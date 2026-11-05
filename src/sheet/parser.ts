@@ -133,7 +133,7 @@ export function parsePlanRow(row: RawPlanRow, currentDate: Date = new Date()): P
         return null;
     }
 
-    const dueDate = new Date(year ?? computeAssumedYear(month, day, currentDate), month - 1, day);
+    const dueDate = new Date(Date.UTC(year ?? computeAssumedYear(month, day, currentDate), month - 1, day, 12, 0, 0, 0));
 
     return {
         ownerNames,
