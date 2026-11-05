@@ -101,7 +101,7 @@ export async function runReminderCheck(client: Client, config: Config): Promise<
         const previousState = loadReminderState(config.reminderStatePath);
 
         if (previousState === reminderStateKey) {
-            await sendLogMessage(client, config, `Skipping duplicate reminder for ${matchingPlan.planTitle} (${matchingPlan.dueDate.toISOString()}).`);
+            await sendLogMessage(client, config, `Skipping duplicate reminder for ${matchingPlan.planTitle} (\`${matchingPlan.dueDate.toDateString()}\`).`);
             return;
         }
 

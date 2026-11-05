@@ -10,7 +10,7 @@ async function main(): Promise<void> {
         try {
             await runReminderCheck(client, config);
         } catch (error) {
-            console.error('Reminder check threw an error:', error);
+            console.error('[ERROR] Reminder check threw an error:', error);
         } finally {
             if (typeof client.destroy === 'function') {
                 await client.destroy();
@@ -27,5 +27,5 @@ async function main(): Promise<void> {
 }
 
 main().catch((error) => {
-    console.error('Bot failed to start (top-level error):', error);
+    console.error('[ERROR] Bot failed to start (top-level error):', error);
 });

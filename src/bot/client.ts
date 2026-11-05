@@ -11,11 +11,11 @@ export function createDiscordClient(config: Config): Client {
             return;
         }
 
-        console.log(`Logged in as ${client.user.tag}`);
+        console.log(`[LOG] Logged in as ${client.user.tag}`);
     });
 
     client.login(config.discordToken).catch((error: unknown) => {
-        console.error('Failed to log in to Discord:', error);
+        console.error('[ERROR] Failed to log in to Discord:', error);
     });
 
     return client;
@@ -37,14 +37,14 @@ export async function sendLogMessage(client: Client, config: Config, content: st
         const channel = await client.channels.fetch(config.logChannelId);
 
         if (!channel || !('send' in channel)) {
-            console.error('Failed to send log message: log channel missing or not sendable');
+            console.error('[ERROR] Failed to send log message: log channel missing or not sendable');
             return;
         }
 
         const textChannel = channel as TextChannel;
-        await textChannel.send(content);
+        await textChannel.send(`[LOG] ${content}`);
     } catch (error) {
         const message = error instanceof Error ? error.message : String(error);
-        console.error(`Failed to send log message: ${message}`);
+        console.error(`[ERROR] Failed to send log message: ${message}`);
     }
 }
