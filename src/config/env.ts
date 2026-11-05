@@ -13,6 +13,7 @@ export type Config = {
     googleServiceAccountEmail: string;
     googlePrivateKey: string;
     hostToDiscordId: Record<string, string>;
+    reminderStatePath?: string;
 };
 
 function getRequiredEnv(name: string): string {
@@ -48,5 +49,6 @@ export function loadConfig(): Config {
         googleServiceAccountEmail: getRequiredEnv('GOOGLE_SERVICE_ACCOUNT_EMAIL'),
         googlePrivateKey: getRequiredEnv('GOOGLE_PRIVATE_KEY').replace(/\\n/g, '\n'),
         hostToDiscordId,
+        reminderStatePath: process.env.REMINDER_STATE_PATH || undefined,
     };
 }

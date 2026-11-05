@@ -18,6 +18,8 @@ GOOGLE_SERVICE_ACCOUNT_EMAIL="service-account-email"
 GOOGLE_PRIVATE_KEY="-----BEGIN PRIVATE KEY-----\n...\n-----END PRIVATE KEY-----\n"
 
 HOST_TO_DISCORD_ID='{"alice":"123456789012345678","jen":"234567890123456789","hannah":"345678901234567890"}'
+REMINDER_STATE_PATH='.github/reminder-state.txt'
+RUN_ONCE='true'
 ```
 
 ## Host mapping rules
@@ -56,3 +58,13 @@ Create a `.env` file in the repo root and keep it out of git. A `.env.example` f
 - Never commit tokens, service account keys, or spreadsheet URLs.
 - Use a gitignored local config file for secrets.
 - Keep values short and explicit; do not hardcode IDs in source files.
+
+## GitHub Action settings
+
+`REMOTE_STATE_PATH` is used to persist the last reminder key for duplicate protection. This file is stored in the repository so it survives across short-lived GitHub Action workers.
+
+```env
+REMINDER_STATE_PATH='.github/reminder-state.txt'
+```
+
+This bot runs as a one-shot GitHub Action job, so the runtime model is intentionally simple: load config, evaluate the next reminder, send it if needed, persist state, and exit.

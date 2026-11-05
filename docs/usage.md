@@ -56,3 +56,36 @@ When testing locally, prefer:
 - a fake Discord client or dry-run logger
 
 This keeps the bot usable without production secrets or live Discord access.
+
+## Scheduled and manual execution
+
+The bot runs as a one-shot GitHub Action job. It does not stay alive as a local daemon and does not require a persistent long-running process.
+
+This means:
+
+- the app can be run on a schedule
+- it can also be triggered manually via `workflow_dispatch`
+- it will exit cleanly after performing one reminder check
+
+This is a good fit for a no-cost hosted scheduler and keeps the deployment model simple.
+
+## Idempotent reminder behavior
+
+The scheduler keeps a small state file in the repository containing the last successfully sent reminder key. If the same plan would be sent again, the app skips the Discord post and logs the duplicate detection instead.
+
+This is helpful when:
+
+- a GitHub Action run is retried
+- a manual dispatch happens after the scheduled job already ran
+- a duplicate job starts while another is in progress
+
+## Maintenance
+
+If you need to reset the reminder state for a new cycle, delete or replace the state file referenced by `REMINDER_STATE_PATH`.
+
+A common workflow is:
+
+1. verify the spreadsheet has the expected next plan
+2. trigger the workflow manually with `workflow_dispatch`
+3. confirm the reminder was posted once
+4. let the scheduled Monday job take over for the normal cadence

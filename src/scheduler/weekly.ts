@@ -4,6 +4,8 @@ import { getNormalizedHostKey, parsePlanRow } from '../sheet/parser.js';
 import { fetchSheetRows } from '../sheet/googleSheets.js';
 import { sendLogMessage, sendReminderMessage } from '../bot/client.js';
 import { buildReminderMessage } from '../reminders/message.js';
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
+import path from 'node:path';
 
 function resolveOwnerMention(plan: { ownerNames: string[]; mentionTarget: 'all' | 'single' | 'multiple'; }, config: Config): string {
     if (plan.ownerNames.length === 0) {
@@ -38,14 +40,56 @@ function resolveOwnerMention(plan: { ownerNames: string[]; mentionTarget: 'all' 
     return `<@${resolvedId}>`;
 }
 
+function buildReminderStateKey(plan: { dueDate: Date; planTitle: string; ownerNames: string[] }): string {
+    return `${plan.dueDate.toISOString().slice(0, 10)}:${plan.planTitle.trim()}:${plan.ownerNames.join('|')}`;
+}
+
+function loadReminderState(filePath: string | undefined): string | null {
+    if (!filePath) {
+        return null;
+    }
+
+    try {
+        if (!existsSync(filePath)) {
+            return null;
+        }
+
+        const contents = readFileSync(filePath, 'utf-8').trim();
+        return contents || null;
+    } catch {
+        return null;
+    }
+}
+
+function saveReminderState(filePath: string | undefined, value: string): void {
+    if (!filePath) {
+        return;
+    }
+
+    try {
+        const directory = path.dirname(filePath);
+        if (!existsSync(directory)) {
+            mkdirSync(directory, { recursive: true });
+        }
+
+        writeFileSync(filePath, value, 'utf-8');
+    } catch {
+        // Ignore state persistence failures so reminder sending remains resilient.
+    }
+}
+
 export async function runReminderCheck(client: Client, config: Config): Promise<void> {
     try {
         const rows = await fetchSheetRows(config);
         const currentDate = new Date();
+        const today = new Date(currentDate.getFullYear(), currentDate.getMonth(), currentDate.getDate());
         const plans = rows
             .map((row) => parsePlanRow(row, currentDate))
             .filter((plan): plan is NonNullable<typeof plan> => Boolean(plan))
-            .filter((plan) => plan.dueDate.getTime() >= currentDate.getTime());
+            .filter((plan) => {
+                const planDay = new Date(plan.dueDate.getFullYear(), plan.dueDate.getMonth(), plan.dueDate.getDate());
+                return planDay.getTime() >= today.getTime();
+            });
 
         if (plans.length === 0) {
             await sendLogMessage(client, config, 'No upcoming plans found in the Google Sheet for the current time window. Skipping reminder send.');
@@ -53,9 +97,18 @@ export async function runReminderCheck(client: Client, config: Config): Promise<
         }
 
         const matchingPlan = plans.sort((a, b) => a.dueDate.getTime() - b.dueDate.getTime())[0];
+        const reminderStateKey = buildReminderStateKey(matchingPlan);
+        const previousState = loadReminderState(config.reminderStatePath);
+
+        if (previousState === reminderStateKey) {
+            await sendLogMessage(client, config, `Skipping duplicate reminder for ${matchingPlan.planTitle} (${matchingPlan.dueDate.toISOString()}).`);
+            return;
+        }
+
         const ownerMention = resolveOwnerMention(matchingPlan, config);
         const message = buildReminderMessage(ownerMention, matchingPlan.planTitle, matchingPlan.dueDate);
         await sendReminderMessage(client, config, message);
+        saveReminderState(config.reminderStatePath, reminderStateKey);
     } catch (error) {
         const message = error instanceof Error ? error.message : String(error);
         await sendLogMessage(client, config, `Reminder check failed: ${message}`);

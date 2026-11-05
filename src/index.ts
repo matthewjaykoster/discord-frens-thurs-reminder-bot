@@ -6,13 +6,24 @@ async function main(): Promise<void> {
     const config = loadConfig();
     const client = createDiscordClient(config);
 
-    client.on('ready', async () => {
+    const runOnce = async (): Promise<void> => {
         try {
             await runReminderCheck(client, config);
         } catch (error) {
             console.error('Reminder check threw an error:', error);
+        } finally {
+            if (typeof client.destroy === 'function') {
+                await client.destroy();
+            }
         }
-    });
+    };
+
+    if (typeof client.once === 'function') {
+        client.once('ready', runOnce);
+        return;
+    }
+
+    client.on('ready', runOnce);
 }
 
 main().catch((error) => {
