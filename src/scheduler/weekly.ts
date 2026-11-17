@@ -7,9 +7,10 @@ import { buildReminderMessage } from '../reminders/message.js';
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 
-function resolveOwnerMention(plan: { ownerNames: string[]; mentionTarget: 'all' | 'single' | 'multiple'; }, config: Config): string {
+function resolveOwnerMention(plan: { ownerNames: string[]; mentionTarget: 'all' | 'single' | 'multiple'; }, config: Config, client: Client): string {
     if (plan.ownerNames.length === 0) {
-        return 'Everyone (No host assigned)';
+        void sendLogMessage(client, config, 'Owner name missing: plan row had no host name. Using <Missing Owner Name> in the reminder.');
+        return '<Missing Owner Name>';
     }
 
     if (plan.mentionTarget === 'all') {
@@ -21,20 +22,27 @@ function resolveOwnerMention(plan: { ownerNames: string[]; mentionTarget: 'all' 
             .map((ownerName) => {
                 const normalizedKey = getNormalizedHostKey(ownerName);
                 const resolvedId = config.hostToDiscordId[normalizedKey] ?? config.hostToDiscordId[ownerName];
-                return resolvedId ? `<@${resolvedId}>` : ownerName;
+                if (!resolvedId) {
+                    void sendLogMessage(client, config, `Owner name missing Discord mapping: ${ownerName}. Using the plain name instead of a mention.`);
+                    return ownerName;
+                }
+
+                return `<@${resolvedId}>`;
             })
             .join(' ');
     }
 
     const singleOwnerName = plan.ownerNames[0];
     if (!singleOwnerName) {
-        throw new Error('Could not resolve host discord ID for reminder: missing owner name');
+        void sendLogMessage(client, config, 'Owner name missing: plan row had no host name. Using <Missing Owner Name> in the reminder.');
+        return '<Missing Owner Name>';
     }
 
     const normalizedHost = getNormalizedHostKey(singleOwnerName);
     const resolvedId = config.hostToDiscordId[normalizedHost] ?? config.hostToDiscordId[singleOwnerName];
     if (!resolvedId) {
-        throw new Error(`Could not resolve host discord ID for reminder: ${singleOwnerName}`);
+        void sendLogMessage(client, config, `Owner name missing Discord mapping: ${singleOwnerName}. Using the plain name instead of a mention.`);
+        return singleOwnerName;
     }
 
     return `<@${resolvedId}>`;
@@ -105,7 +113,7 @@ export async function runReminderCheck(client: Client, config: Config): Promise<
             return;
         }
 
-        const ownerMention = resolveOwnerMention(matchingPlan, config);
+        const ownerMention = resolveOwnerMention(matchingPlan, config, client);
         const message = buildReminderMessage(ownerMention, matchingPlan.planTitle, matchingPlan.dueDate, matchingPlan.notes);
         await sendReminderMessage(client, config, message);
         saveReminderState(config.reminderStatePath, reminderStateKey);

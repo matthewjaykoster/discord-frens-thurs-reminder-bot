@@ -118,7 +118,7 @@ export function parsePlanRow(row: RawPlanRow, currentDate: Date = new Date()): P
     const activity = normalizeText(row.activity);
     const notes = normalizeText(row.notes);
 
-    if (!rawDate || !hostName || !activity) {
+    if (!rawDate || !activity) {
         return null;
     }
 
@@ -130,7 +130,14 @@ export function parsePlanRow(row: RawPlanRow, currentDate: Date = new Date()): P
     const { month, day, year } = parsedDate;
     const { ownerNames, mentionTarget } = parseOwnerNames(hostName);
     if (ownerNames.length === 0) {
-        return null;
+        return {
+            ownerNames: [],
+            mentionTarget,
+            planTitle: activity,
+            dueDate: new Date(Date.UTC(year ?? computeAssumedYear(month, day, currentDate), month - 1, day, 12, 0, 0, 0)),
+            notes,
+            rawDate,
+        };
     }
 
     const dueDate = new Date(Date.UTC(year ?? computeAssumedYear(month, day, currentDate), month - 1, day, 12, 0, 0, 0));

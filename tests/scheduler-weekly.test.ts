@@ -80,7 +80,7 @@ describe('runReminderCheck', () => {
         const client = {} as any;
         await runReminderCheck(client, config);
 
-        expect(sendLogMessage).toHaveBeenCalledWith(client, config, expect.stringContaining('Could not resolve host'));
+        expect(sendLogMessage).toHaveBeenCalledWith(client, config, expect.stringContaining('missing Discord mapping'));
     });
 
     it('does not send a message when no plans match', async () => {
@@ -101,5 +101,29 @@ describe('runReminderCheck', () => {
         await runReminderCheck(client, config);
 
         expect(sendLogMessage).toHaveBeenCalledWith(client, config, expect.stringContaining('Reminder check failed'));
+    });
+
+    it('uses a placeholder when the host name is missing', async () => {
+        vi.mocked(fetchSheetRows).mockResolvedValue([
+            { date: '11-12', host: '', activity: 'Movie night', notes: 'Bring snacks' },
+        ]);
+
+        const client = {} as any;
+        await runReminderCheck(client, config);
+
+        expect(sendReminderMessage).toHaveBeenCalledWith(client, config, expect.stringContaining('<Missing Owner Name>'));
+        expect(sendLogMessage).toHaveBeenCalledWith(client, config, expect.stringContaining('Owner name missing'));
+    });
+
+    it('uses the plain name when a Discord mapping is missing', async () => {
+        vi.mocked(fetchSheetRows).mockResolvedValue([
+            { date: '11-12', host: 'Unknown', activity: 'Movie night', notes: 'Bring snacks' },
+        ]);
+
+        const client = {} as any;
+        await runReminderCheck(client, config);
+
+        expect(sendReminderMessage).toHaveBeenCalledWith(client, config, expect.stringContaining('Unknown'));
+        expect(sendLogMessage).toHaveBeenCalledWith(client, config, expect.stringContaining('missing Discord mapping'));
     });
 });
