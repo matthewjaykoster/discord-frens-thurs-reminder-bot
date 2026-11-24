@@ -9,8 +9,8 @@ import path from 'node:path';
 
 function resolveOwnerMention(plan: { ownerNames: string[]; mentionTarget: 'all' | 'single' | 'multiple'; }, config: Config, client: Client): string {
     if (plan.ownerNames.length === 0) {
-        void sendLogMessage(client, config, 'Owner name missing: plan row had no host name. Using <Missing Owner Name> in the reminder.');
-        return '<Missing Owner Name>';
+        void sendLogMessage(client, config, 'Owner name missing: plan row had no host name. Using "Everybody (no owner)" in the reminder.');
+        return 'Everybody (no owner)';
     }
 
     if (plan.mentionTarget === 'all') {
@@ -34,8 +34,8 @@ function resolveOwnerMention(plan: { ownerNames: string[]; mentionTarget: 'all' 
 
     const singleOwnerName = plan.ownerNames[0];
     if (!singleOwnerName) {
-        void sendLogMessage(client, config, 'Owner name missing: plan row had no host name. Using <Missing Owner Name> in the reminder.');
-        return '<Missing Owner Name>';
+        void sendLogMessage(client, config, 'Owner name missing: plan row had no host name. Using "Everybody (no owner)" in the reminder.');
+        return 'Everybody (no owner)';
     }
 
     const normalizedHost = getNormalizedHostKey(singleOwnerName);
