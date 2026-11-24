@@ -103,7 +103,7 @@ describe('runReminderCheck', () => {
         expect(sendLogMessage).toHaveBeenCalledWith(client, config, expect.stringContaining('Reminder check failed'));
     });
 
-    it('uses a placeholder when the host name is missing', async () => {
+    it('uses Everybody fallback when the host name is missing', async () => {
         vi.mocked(fetchSheetRows).mockResolvedValue([
             { date: '11-12', host: '', activity: 'Movie night', notes: 'Bring snacks' },
         ]);
@@ -111,7 +111,7 @@ describe('runReminderCheck', () => {
         const client = {} as any;
         await runReminderCheck(client, config);
 
-        expect(sendReminderMessage).toHaveBeenCalledWith(client, config, expect.stringContaining('<Missing Owner Name>'));
+        expect(sendReminderMessage).toHaveBeenCalledWith(client, config, expect.stringContaining('Everybody (no owner)'));
         expect(sendLogMessage).toHaveBeenCalledWith(client, config, expect.stringContaining('Owner name missing'));
     });
 
